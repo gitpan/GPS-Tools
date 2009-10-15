@@ -17,8 +17,13 @@
 package GPS::Tools;
 use strict;
 use warnings;
-use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q{Revision: 0.01} =~ /(\d+)\.(\d+)/);
+our $VERSION='0.02';
+
+=head1 NAME
+
+GPS::Tools - GPS package for common GPS functions and methods
+
+=cut
 
 use Time::HiRes qw(usleep);
 use Device::SerialPort;
@@ -29,13 +34,18 @@ our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
 my $sp;
 
-return 1;
+=head1 FUNCTIONS
 
-### init_serial - configure the serial port for use
-### input: name of tty device
-### output: nothing
-### return: a serial port object
-sub init_serial{
+=head2 init_serial
+
+  ### init_serial - configure the serial port for use
+  ### input: name of tty device
+  ### output: nothing
+  ### return: a serial port object
+
+=cut
+
+sub init_serial {
 	my $PORT = $_[0];
 	die "Invalid port\n" unless defined($PORT);
 
@@ -55,10 +65,15 @@ sub init_serial{
 	return $sp;
 }
 
-### sirf_setspeed - set the primary serial port speed
-### input: a port descriptor and speed
-### output: nothing
-### return: 0 if unable to set speed, 1 if able to
+=head2 sirf_setspeed
+
+  ### sirf_setspeed - set the primary serial port speed
+  ### input: a port descriptor and speed
+  ### output: nothing
+  ### return: 0 if unable to set speed, 1 if able to
+
+=cut
+
 sub sirf_setspeed{
 	my %s = qw(1200 1 2400 1 4800 1 9600 1 19200 1 38400 1 57600 1 115200 1);
 	my ($sp, $speed, undef) = @_;
@@ -87,10 +102,15 @@ sub sirf_setspeed{
 	return 1;
 }
 
-### bye - cleanup routine. close fds, ttys, etc.
-### input: nothing
-### output: nothing
-### return: nothing
+=head2 bye
+
+  ### bye - cleanup routine. close fds, ttys, etc.
+  ### input: nothing
+  ### output: nothing
+  ### return: nothing
+
+=cut
+
 sub bye{
 	#do cleanup stuff here
 	eval {
@@ -100,10 +120,15 @@ sub bye{
 	die "exiting.\n"
 }
 
-### hexdump - do a standard hexdump
-### input: a string to be hexdumped
-### output: nothing
-### return: the hexdumped string
+=head2 hexdump
+
+  ### hexdump - do a standard hexdump
+  ### input: a string to be hexdumped
+  ### output: nothing
+  ### return: the hexdumped string
+
+=cut
+
 sub hexdump{
         my $packet = $_[0];
         $packet = unpack("H*", $packet);
@@ -113,10 +138,15 @@ sub hexdump{
 	return $packet;
 }
 
-### sum - sum an array
-### input: an array
-### output: nothing
-### return: the sum of the array elements.
+=head2 sum
+
+  ### sum - sum an array
+  ### input: an array
+  ### output: nothing
+  ### return: the sum of the array elements.
+
+=cut
+
 sub sum{
 	my @x = @_;
 	my $r = 0;
@@ -126,10 +156,15 @@ sub sum{
 	return $r;
 }
 
-### checksum_nmea - do the checksum for an NMEA sentence
-### input: an NMEA sentence, without $ or * delimiters
-### output: nothing
-### return: the checksum string
+=head2 checksum_nmea
+
+  ### checksum_nmea - do the checksum for an NMEA sentence
+  ### input: an NMEA sentence, without $ or * delimiters
+  ### output: nothing
+  ### return: the checksum string
+
+=cut
+
 sub checksum_nmea{
         my ($packet, undef) = @_;
 
@@ -141,10 +176,15 @@ sub checksum_nmea{
         return sprintf("%02X", $c);
 }
 
-### checksum_garmin - do the checksum for a garmin packet
-### input: the string to be checksummed (type + len + body)
-### output: nothing
-### return: the calculated checksum
+=head2 checksum_garmin
+
+  ### checksum_garmin - do the checksum for a garmin packet
+  ### input: the string to be checksummed (type + len + body)
+  ### output: nothing
+  ### return: the calculated checksum
+
+=cut
+
 sub checksum_garmin{
 	my ($packet, undef) = @_;
 
@@ -158,10 +198,15 @@ sub checksum_garmin{
 	return $c;
 }
 
-### checksum_sirf - do the checksum for a SiRF packet
-### input: the body of a SiRF packet
-### output: nothing
-### return: the checksum of the packet
+=head2 checksum_sirf
+
+  ### checksum_sirf - do the checksum for a SiRF packet
+  ### input: the body of a SiRF packet
+  ### output: nothing
+  ### return: the checksum of the packet
+
+=cut
+
 sub checksum_sirf{
 	my ($packet, undef) = @_;
 	my $c = 0;
@@ -172,10 +217,15 @@ sub checksum_sirf{
 	return $c;
 }
 
-### is_invalid_garmin - check the validity of a garmin packet
-### input: an unescaped packet
-### output: nothing
-### return: 0 if valid, otherwise the number of the failed test
+=head2 is_invalid_garmin
+
+  ### is_invalid_garmin - check the validity of a garmin packet
+  ### input: an unescaped packet
+  ### output: nothing
+  ### return: 0 if valid, otherwise the number of the failed test
+
+=cut
+
 sub is_invalid_garmin{
 	my ($packet, undef) = @_;
 	my ($p_type, $p_len, $p_body, $p_sum, $c);
@@ -195,10 +245,15 @@ sub is_invalid_garmin{
 	}
 }
 
-### is_invalid_nmea - check the validity of an NMEA sentence
-### input: a complete NMEA sentence, 
-### output: nothing
-### return: 1 if message is valid, 0 otherwise
+=head2 is_invalid_nmea
+
+  ### is_invalid_nmea - check the validity of an NMEA sentence
+  ### input: a complete NMEA sentence, 
+  ### output: nothing
+  ### return: 1 if message is valid, 0 otherwise
+
+=cut
+
 sub is_invalid_nmea{
         my ($packet, undef) = @_;
 
@@ -209,10 +264,15 @@ sub is_invalid_nmea{
 	return ($c eq checksum_nmea($packet))?0:3;
 }
 
-### is_invalid_sirf - check the validity of a SiRF packet
-### input: a packet
-### output: nothing
-### return: 0 if valid, or the number of the failed test
+=head2 is_invalid_sirf
+
+  ### is_invalid_sirf - check the validity of a SiRF packet
+  ### input: a packet
+  ### output: nothing
+  ### return: 0 if valid, or the number of the failed test
+
+=cut
+
 sub is_invalid_sirf{
 	my ($packet, undef) = @_;
 	return 1 unless defined($packet);
@@ -228,10 +288,15 @@ sub is_invalid_sirf{
 	return ($cx == $cksum)?0:4;
 }
 
-### floatfix - fix up SiRF's busted-ass data encoding
-### input: an 8byte SiRF encoded double or 4 byte SiRF encoded float
-### output: nothing
-### return: something that can be fed to *printf("%f",$var) ... ieee754, i hope
+=head2 floatfix
+
+  ### floatfix - fix up SiRF's busted-ass data encoding
+  ### input: an 8byte SiRF encoded double or 4 byte SiRF encoded float
+  ### output: nothing
+  ### return: something that can be fed to *printf("%f",$var) ... ieee754, i hope
+
+=cut
+
 sub floatfix{
 	my ($in, undef) = @_;
 	my $l = length($in);
@@ -249,10 +314,15 @@ sub floatfix{
 	return $in;
 }
 
-### int2signed - turn an unsigned integer into a signed integer.
-### input: an unsigned quantity and its length in bytes
-### output: nothing
-### return: the same bits as the input, but interpreted as a signed number
+=head2 int2signed
+
+  ### int2signed - turn an unsigned integer into a signed integer.
+  ### input: an unsigned quantity and its length in bytes
+  ### output: nothing
+  ### return: the same bits as the input, but interpreted as a signed number
+
+=cut
+
 sub int2signed{
 	my ($i, $l, undef) = @_;
 	$l = 4 unless (defined($l) && ($l > 0));
@@ -265,10 +335,15 @@ sub int2signed{
 	return $i;
 }
 
-### ecef2lla - Convert ECEF (cartesian) coordinates to WGS84
-### input: X Y Z in meters
-### output: nothing
-### return: a 3 element vector of latitude, longitude and altitude
+=head2 ecef2lla
+
+  ### ecef2lla - Convert ECEF (cartesian) coordinates to WGS84
+  ### input: X Y Z in meters
+  ### output: nothing
+  ### return: a 3 element vector of latitude, longitude and altitude
+
+=cut
+
 sub ecef2lla{
 	my ($A, $B, $E, $F, $P, $T, $N, $X, $Y, $Z, $lat, $long, $alt);
 	($X, $Y, $Z, undef) = @_;
@@ -300,10 +375,15 @@ sub ecef2lla{
 	return(rad2deg($lat), rad2deg($long)-180, $alt);
 }
 
-### lla2ecef - Convert WGS84 coordinates to ECEF (cartesian)
-### input: latitude and longitude in degrees and altitude meters
-### output: nothing
-### return: a 3 elemnt vector of X Y Z in meters
+=head2 lla2ecef
+
+  ### lla2ecef - Convert WGS84 coordinates to ECEF (cartesian)
+  ### input: latitude and longitude in degrees and altitude meters
+  ### output: nothing
+  ### return: a 3 elemnt vector of X Y Z in meters
+
+=cut
+
 sub lla2ecef{
 	my ($lat, $long, $alt, undef) = @_;
 
@@ -324,6 +404,10 @@ sub lla2ecef{
 	return($X, $Y, $Z);
 }
 
+=head2 factorial
+
+=cut
+
 sub factorial{
 	my $n = int($_[0]);
 	my $r = 1;
@@ -334,10 +418,4 @@ sub factorial{
 	return $r;
 }
 
-__END__
-
-=head1 NAME
-
-GPS::Tools - GPS package for common GPS functions and methods
-
-=cut
+1;
